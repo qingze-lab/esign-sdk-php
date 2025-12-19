@@ -36,12 +36,6 @@
 			"QingzeLab\\OpenIM\\Tests\\": "tests/"
 		}
 	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "git@github.com:qingze-lab/openim-sdk-php.git"
-		}
-	],
 	"minimum-stability": "dev",
 	"prefer-stable": true
 }
