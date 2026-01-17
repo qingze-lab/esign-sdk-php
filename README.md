@@ -18,7 +18,7 @@
 使用 Composer 安装：
 
 ```bash
-composer require qingze-lab/esignbao-sdk
+composer require qingze-lab/esignbao-sdk-php
 ```
 
 ## 快速开始
