@@ -18,7 +18,7 @@
 使用 Composer 安装：
 
 ```bash
-composer require your-vendor/esignbao-sdk
+composer require qingze-lab/esignbao-sdk
 ```
 
 ## 快速开始
