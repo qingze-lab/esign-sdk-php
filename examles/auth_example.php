@@ -16,63 +16,59 @@ $client = new Client([
 ]);
 
 try {
-    echo "========== 个人账号管理示例 ==========\n\n";
+    echo "========== 实名认证链接获取示例 ==========\n\n";
 
-    // 1. 创建个人账号
-    echo "1. 创建个人账号...\n";
-    $accountResult = $client->auth()->createPersonAccount(
-        thirdPartyUserId: 'user_' . time(),
-        psnAccount: '13800138000',
-        name: '张三',
-        idNumber: '110101199001011234'
+    // 1. 获取个人认证链接
+    echo "1. 获取个人认证链接...\n";
+    $psnAuthUrl = $client->auth()->getPersonAuthUrl(
+        psnAuthConfig: [
+            'psnAccount' => '13800138000'
+        ],
+        authorizeConfig: [
+            'authorizedScopes' => ['get_psn_identity_info']
+        ],
+        redirectConfig: [
+            'redirectUrl' => 'https://example.com/callback'
+        ]
     );
+    echo "个人认证链接: " . ($psnAuthUrl['data']['authUrl'] ?? '获取失败') . "\n\n";
 
-    if (isset($accountResult['data']['psnId'])) {
-        $psnId = $accountResult['data']['psnId'];
-        echo "✓ 个人账号创建成功，psnId: {$psnId}\n\n";
-    }
 
-    // 2. 查询个人认证信息（通过psnId）
-    if (isset($psnId)) {
-        echo "2. 查询个人认证信息（通过psnId）...\n";
-        $identityInfo = $client->auth()->getPersonIdentityInfo(psnId: $psnId);
-        echo "认证状态: " . ($identityInfo['data']['realnameStatus'] ?? '未认证') . "\n\n";
-    }
-
-    // 3. 查询个人认证信息（通过手机号）
-    echo "3. 查询个人认证信息（通过手机号）...\n";
-    $identityInfo2 = $client->auth()->getPersonIdentityInfo(psnAccount: '13800138000');
-    echo "查询结果: " . json_encode($identityInfo2, JSON_UNESCAPED_UNICODE) . "\n\n";
-
-    // 4. 查询个人认证信息（通过身份证号）
-    echo "4. 查询个人认证信息（通过身份证号）...\n";
-    $identityInfo3 = $client->auth()->getPersonIdentityInfo(
-        psnIDCardNum: '110101199001011234',
-        psnIDCardType: 'CRED_PSN_CH_IDCARD'
+    // 2. 获取机构认证链接
+    echo "2. 获取机构认证链接...\n";
+    $orgAuthUrl = $client->auth()->getOrganizationAuthUrl(
+        orgAuthConfig: [
+            'orgName' => '测试科技有限公司'
+        ],
+        transactorInfo: [
+            'psnAccount' => '13800138000'
+        ],
+        redirectConfig: [
+            'redirectUrl' => 'https://example.com/callback'
+        ]
     );
-    echo "查询结果: " . json_encode($identityInfo3, JSON_UNESCAPED_UNICODE) . "\n\n";
+    echo "机构认证链接: " . ($orgAuthUrl['data']['authUrl'] ?? '获取失败') . "\n\n";
 
-    echo "\n========== 企业账号管理示例 ==========\n\n";
-
-    // 5. 创建企业账号
-    echo "5. 创建企业账号...\n";
-    $orgResult = $client->auth()->createOrganizationAccount(
-        thirdPartyUserId: 'org_' . time(),
-        orgName: '测试科技有限公司',
-        orgIDCardNum: '91110000000000000X'
-    );
-
-    if (isset($orgResult['data']['orgId'])) {
-        $orgId = $orgResult['data']['orgId'];
-        echo "✓ 企业账号创建成功，orgId: {$orgId}\n\n";
+    // 假设已知 authFlowId
+    if (isset($psnAuthUrl['data']['authFlowId'])) {
+        $authFlowId = $psnAuthUrl['data']['authFlowId'];
+        echo "3. 查询认证授权流程详情 (flowId: {$authFlowId})...\n";
+        $flowDetail = $client->auth()->getAuthFlowDetail($authFlowId);
+        echo "流程状态: " . ($flowDetail['data']['realNameStatus'] ?? '未知') . "\n\n";
     }
 
-    // 6. 查询企业认证信息
-    if (isset($orgId)) {
-        echo "6. 查询企业认证信息...\n";
-        $orgIdentityInfo = $client->auth()->getOrganizationIdentityInfo(orgId: $orgId);
-        echo "认证状态: " . ($orgIdentityInfo['data']['realnameStatus'] ?? '未认证') . "\n\n";
-    }
+    echo "========== 认证信息查询示例 ==========\n\n";
+
+    // 4. 查询个人认证信息（通过手机号）
+    echo "4. 查询个人认证信息（通过手机号）...\n";
+    $identityInfo = $client->auth()->getPersonIdentityInfo(psnAccount: '13800138000');
+    echo "查询结果: " . json_encode($identityInfo, JSON_UNESCAPED_UNICODE) . "\n\n";
+
+    // 5. 查询企业认证信息
+    echo "5. 查询企业认证信息...\n";
+    // 假设已知 orgId
+    // $orgIdentityInfo = $client->auth()->getOrganizationIdentityInfo(orgId: 'org_xxxx');
+    // echo "认证状态: " . ($orgIdentityInfo['data']['realnameStatus'] ?? '未认证') . "\n\n";
 
     echo "========== 所有测试完成 ==========\n";
 

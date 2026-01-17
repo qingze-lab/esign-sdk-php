@@ -61,16 +61,26 @@ try {
     echo "\n----------------------------------------\n";
     echo "示例2: 获取机构认证链接\n";
 
+    // 1. 机构认证配置
     $orgAuthConfig = [
         'orgName' => '测试企业' . rand(1000, 9999),
+        // 'orgInfo' => [ ... ],
+        // 'orgAuthPageConfig' => [ ... ]
+    ];
+    
+    // 2. 经办人信息 (注意：代码会自动将其放入 orgAuthConfig 内部)
+    $transactorInfo = [
+        'psnAccount' => '138' . rand(10000000, 99999999),
+        // 'psnInfo' => [ ... ]
     ];
 
+    // 调用接口
     // $response = $client->auth()->getOrganizationAuthUrl(
     //     $orgAuthConfig,
-    //     null, // transactorInfo
+    //     $transactorInfo,
     //     $authorizeConfig,
-    //     $redirectConfig,
     //     $notifyUrl,
+    //     $redirectConfig,
     //     $clientType
     // );
     // print_r($response);

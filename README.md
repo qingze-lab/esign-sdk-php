@@ -47,24 +47,11 @@ $client = new Client([
 
 ### 1. 账号管理
 
-#### 创建个人账号
-
-```php
-$result = $client->auth()->createPersonAccount(
-    thirdPartyUserId: 'user_12345',
-    psnAccount: '13800138000',
-    name: '张三',
-    idNumber: '110101199001011234'
-);
-
-$psnId = $result['data']['psnId'];
-```
-
 #### 查询个人认证信息
 
 ```php
 // 通过psnId查询
-$info = $client->auth()->getPersonIdentityInfo(psnId: $psnId);
+$info = $client->auth()->getPersonIdentityInfo(psnId: 'person_id');
 
 // 通过手机号查询
 $info = $client->auth()->getPersonIdentityInfo(psnAccount: '13800138000');
@@ -76,22 +63,10 @@ $info = $client->auth()->getPersonIdentityInfo(
 );
 ```
 
-#### 创建企业账号
-
-```php
-$result = $client->auth()->createOrganizationAccount(
-    thirdPartyUserId: 'org_12345',
-    orgName: '测试科技有限公司',
-    orgIDCardNum: '91110000000000000X'
-);
-
-$orgId = $result['data']['orgId'];
-```
-
 #### 查询企业认证信息
 
 ```php
-$info = $client->auth()->getOrganizationIdentityInfo(orgId: $orgId);
+$info = $client->auth()->getOrganizationIdentityInfo(orgId: 'org_id');
 ```
 
 ### 2. 文件管理
@@ -211,9 +186,10 @@ $result = $client->signFlow()->getSignedFiles($signFlowId);
 
 | SDK方法 | 官方接口 | 说明 |
 |---------|---------|------|
-| `createPersonAccount()` | `POST /v3/persons` | 创建个人账号 |
+| `getPersonAuthUrl()` | `POST /v3/psn-auth-url` | 获取个人认证&授权页面链接 |
 | `getPersonIdentityInfo()` | `GET /v3/persons/identity-info` | 查询个人认证信息 |
-| `createOrganizationAccount()` | `POST /v3/organizations` | 创建企业账号 |
+| `getOrganizationAuthUrl()` | `POST /v3/org-auth-url` | 获取机构认证&授权页面链接 |
+| `getAuthFlowDetail()` | `GET /v3/auth-flow/{authFlowId}` | 查询认证授权流程详情 |
 | `getOrganizationIdentityInfo()` | `GET /v3/organizations/identity-info` | 查询企业认证信息 |
 
 ### 文件服务 (FileService)
@@ -245,7 +221,7 @@ $result = $client->signFlow()->getSignedFiles($signFlowId);
 use ESignBao\Exceptions\ESignBaoException;
 
 try {
-    $result = $client->auth()->createPersonAccount(...);
+    $result = $client->auth()->getPersonAuthUrl(...);
 } catch (ESignBaoException $e) {
     echo "错误: " . $e->getMessage() . "\n";
     echo "错误码: " . $e->getCode() . "\n";

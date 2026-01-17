@@ -69,42 +69,54 @@ class AuthService
      * 接口文档: https://open.esign.cn/doc/opendoc/auth3/kcbdu7
      *
      * @param array       $orgAuthConfig   组织机构认证配置项
-     * @param array|null  $transactorInfo  经办人身份信息（可选）
      * @param array|null  $authorizeConfig 机构授权配置项（可选）
-     * @param array|null  $redirectConfig  重定向配置项（可选）
      * @param string|null $notifyUrl       异步通知地址（可选）
+     * @param array|null  $redirectConfig  重定向配置项（可选）
      * @param string|null $clientType      客户端类型（可选，默认ALL）
+     * @param string|null $appScheme       App Scheme（可选，用于端外唤起APP）
      * @return array 包含authUrl和authFlowId
      * @throws ESignBaoException
      */
     public function getOrganizationAuthUrl(
         array   $orgAuthConfig,
-        ?array  $transactorInfo = null,
         ?array  $authorizeConfig = null,
-        ?array  $redirectConfig = null,
         ?string $notifyUrl = null,
-        ?string $clientType = null
+        ?array  $redirectConfig = null,
+        ?string $clientType = null,
+        ?string $appScheme = null
     ): array
     {
         $data = ['orgAuthConfig' => $orgAuthConfig];
-
-        if ($transactorInfo !== null) {
-            $data['transactorInfo'] = $transactorInfo;
-        }
         if ($authorizeConfig !== null) {
             $data['authorizeConfig'] = $authorizeConfig;
-        }
-        if ($redirectConfig !== null) {
-            $data['redirectConfig'] = $redirectConfig;
         }
         if ($notifyUrl !== null) {
             $data['notifyUrl'] = $notifyUrl;
         }
+        if ($redirectConfig !== null) {
+            $data['redirectConfig'] = $redirectConfig;
+        }
         if ($clientType !== null) {
             $data['clientType'] = $clientType;
         }
+        if ($appScheme !== null) {
+            $data['appScheme'] = $appScheme;
+        }
 
         return $this->httpClient->post('/v3/org-auth-url', $data);
+    }
+
+    /**
+     * 查询认证授权流程详情
+     * 接口文档: https://open.esign.cn/doc/opendoc/auth3/hlrs7s
+     *
+     * @param string $authFlowId 认证授权流程ID
+     * @return array 流程详情
+     * @throws ESignBaoException
+     */
+    public function getAuthFlowDetail(string $authFlowId): array
+    {
+        return $this->httpClient->get("/v3/auth-flow/{$authFlowId}");
     }
 
     /**
@@ -146,44 +158,6 @@ class AuthService
     }
 
     /**
-     * 创建个人账号
-     * 接口文档: https://open.esign.cn/doc/opendoc/auth3/kcbdu7
-     *
-     * @param string      $thirdPartyUserId 第三方平台的用户唯一标识
-     * @param string|null $psnAccount       个人账号标识（手机号或邮箱）
-     * @param string|null $name             姓名
-     * @param string|null $idNumber         证件号
-     * @param string|null $idType           证件类型，默认CRED_PSN_CH_IDCARD
-     * @return array 包含psnId的账号信息
-     * @throws ESignBaoException
-     */
-    public function createPersonAccount(
-        string  $thirdPartyUserId,
-        ?string $psnAccount = null,
-        ?string $name = null,
-        ?string $idNumber = null,
-        ?string $idType = 'CRED_PSN_CH_IDCARD'
-    ): array
-    {
-        $data = [
-            'thirdPartyUserId' => $thirdPartyUserId,
-        ];
-
-        if ($psnAccount !== null) {
-            $data['psnAccount'] = $psnAccount;
-        }
-        if ($name !== null) {
-            $data['name'] = $name;
-        }
-        if ($idNumber !== null) {
-            $data['idNumber'] = $idNumber;
-            $data['idType']   = $idType;
-        }
-
-        return $this->httpClient->post('/v3/persons', $data);
-    }
-
-    /**
      * 查询组织机构认证信息
      *
      * @param string|null $orgId        机构账号ID
@@ -210,38 +184,5 @@ class AuthService
         }
 
         return $this->httpClient->get('/v3/organizations/identity-info', $params);
-    }
-
-    /**
-     * 创建机构账号
-     * 接口文档: https://open.esign.cn/doc/opendoc/auth3/hlrs7s
-     *
-     * @param string      $thirdPartyUserId 第三方平台的机构唯一标识
-     * @param string|null $orgName          机构名称
-     * @param string|null $orgIDCardNum     统一社会信用代码
-     * @param string|null $orgIDCardType    证件类型，默认CRED_ORG_USCC
-     * @return array 包含orgId的账号信息
-     * @throws ESignBaoException
-     */
-    public function createOrganizationAccount(
-        string  $thirdPartyUserId,
-        ?string $orgName = null,
-        ?string $orgIDCardNum = null,
-        ?string $orgIDCardType = 'CRED_ORG_USCC'
-    ): array
-    {
-        $data = [
-            'thirdPartyUserId' => $thirdPartyUserId,
-        ];
-
-        if ($orgName !== null) {
-            $data['orgName'] = $orgName;
-        }
-        if ($orgIDCardNum !== null) {
-            $data['orgIDCardNum']  = $orgIDCardNum;
-            $data['orgIDCardType'] = $orgIDCardType;
-        }
-
-        return $this->httpClient->post('/v3/organizations', $data);
     }
 }
