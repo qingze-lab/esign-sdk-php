@@ -1,0 +1,49 @@
+{
+	"name": "your-vendor/esignbao-sdk",
+	"description": "易签宝 REST API PHP SDK，支持实名认证V3和PDF合同签署，包含令牌管理、可重试HTTP和领域服务。",
+	"type": "library",
+	"license": "MIT",
+	"homepage": "https://github.com/qingze-lab/esign-sdk-php",
+	"keywords": [
+		"esignbao",
+		"e-signature",
+		"contract",
+		"authentication",
+		"sdk",
+		"rest",
+		"php"
+	],
+	"authors": [
+		{
+			"name": "Qingze Lab",
+			"email": "opensource@qingze.lab",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=8.2",
+		"guzzlehttp/guzzle": "^7.8",
+		"ext-json": "*",
+		"psr/log": "^3.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.5",
+		"phpstan/phpstan": "^1.10"
+	},
+	"autoload": {
+		"psr-4": {
+			"QingzeLab\\ESignBao\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"QingzeLab\\ESignBao\\Tests\\": "tests/"
+		}
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true,
+	"scripts": {
+		"test": "phpunit",
+		"analyse": "phpstan analyse src --level=5"
+	}
+}
