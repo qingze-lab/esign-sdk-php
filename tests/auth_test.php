@@ -6,64 +6,78 @@ use QingzeLab\ESignBao\Client;
 use QingzeLab\ESignBao\Config\Configuration;
 use QingzeLab\ESignBao\Exceptions\ESignBaoException;
 
-// 用户提供的沙箱配置
+// 替换为您的应用配置
 $appId = 'your_app_id';
 $appSecret = 'your_app_secret';
-$baseUrl = 'https://smlopenapi.esign.cn';
+$baseUrl = 'https://smlopenapi.esign.cn'; // 沙箱环境
 
 try {
     echo "初始化客户端...\n";
     $config = new Configuration($appId, $appSecret, $baseUrl);
-    // 可选配置
-    $config->setTimeout(30)
-           ->setMaxRetries(3);
-           
     $client = new Client($config);
-    
-    echo "配置信息:\n";
-    echo "AppID: " . $client->getConfig()->getAppId() . "\n";
-    echo "BaseURL: " . $client->getConfig()->getApiBaseUrl() . "\n";
-    echo "Sandbox: " . ($client->getConfig()->isSandbox() ? 'Yes' : 'No') . "\n";
 
-    // 测试1: 获取个人认证链接 (无需真实用户，仅测试鉴权)
-    // 接口: /v3/psn-auth-url (POST)
+    // ==========================================
+    // 示例1: 获取个人认证链接 (包含完整参数)
+    // ==========================================
     echo "\n----------------------------------------\n";
-    echo "测试1: 获取个人认证链接 (POST /v3/psn-auth-url)\n";
+    echo "示例1: 获取个人认证链接\n";
     
-    // 使用一个随机的手机号或简单的配置来触发请求
-    // 注意：沙箱环境可能对手机号有格式校验，但主要为了测试鉴权是否通过
-    $psnAccount = '138' . rand(10000000, 99999999);
-    
-    // 构造请求参数
-    // 根据文档: https://open.esign.cn/doc/opendoc/auth3/rx8igf
+    // 1. 个人认证配置
     $psnAuthConfig = [
-        'psnAccount' => $psnAccount,
+        'psnAccount' => '188' . rand(10000000, 99999999), // 手机号
     ];
     
-    // 使用 AuthService 调用
-    // 接口文档: https://open.esign.cn/doc/opendoc/auth3/rx8igf
-    $psnAuthConfig = [
-        'psnAccount' => $psnAccount,
+    // 2. 授权配置
+    $authorizeConfig = [
+        'authorizedScopes' => ['get_psn_identity_info']
     ];
     
-    // 注意：沙箱环境可能需要更详细的配置，这里仅测试最简参数以验证鉴权通过
-    // 如果鉴权失败，会抛出 401 错误
-    // 如果参数校验失败，会抛出 400 错误 (但鉴权已通过)
+    // 3. 重定向配置
+    $redirectConfig = [
+        'redirectUrl' => 'https://www.your-site.com/callback'
+    ];
     
-    $response = $client->auth()->getPersonAuthUrl($psnAuthConfig);
+    // 4. 通知地址
+    $notifyUrl = 'https://www.your-site.com/notify';
     
-    echo "请求成功!\n";
-    print_r($response);
+    // 5. 客户端类型
+    $clientType = 'ALL';
+    
+    // 调用接口
+    // $response = $client->auth()->getPersonAuthUrl(
+    //     $psnAuthConfig, 
+    //     $authorizeConfig, 
+    //     $redirectConfig, 
+    //     $notifyUrl, 
+    //     $clientType
+    // );
+    // print_r($response);
+    echo "代码示例已更新，请填入真实 AppID 运行。\n";
+
+
+    // ==========================================
+    // 示例2: 获取机构认证链接
+    // ==========================================
+    echo "\n----------------------------------------\n";
+    echo "示例2: 获取机构认证链接\n";
+
+    $orgAuthConfig = [
+        'orgName' => '测试企业' . rand(1000, 9999),
+    ];
+
+    // $response = $client->auth()->getOrganizationAuthUrl(
+    //     $orgAuthConfig,
+    //     null, // transactorInfo
+    //     $authorizeConfig,
+    //     $redirectConfig,
+    //     $notifyUrl,
+    //     $clientType
+    // );
+    // print_r($response);
 
 } catch (ESignBaoException $e) {
     echo "请求失败: " . $e->getMessage() . "\n";
-    echo "Code: " . $e->getCode() . "\n";
-    echo "Response: " . print_r($e->getResponse(), true) . "\n"; // 使用 getResponse()
-    
-    if ($e->getPrevious()) {
-        echo "Previous Exception: " . $e->getPrevious()->getMessage() . "\n";
+    if ($e->getResponse()) {
+        echo "Response: " . json_encode($e->getResponse(), JSON_UNESCAPED_UNICODE) . "\n";
     }
-} catch (Exception $e) {
-    echo "未知错误: " . $e->getMessage() . "\n";
-    echo $e->getTraceAsString();
 }

@@ -30,17 +30,35 @@ class AuthService
      * 获取个人认证&授权页面链接
      * 接口文档: https://open.esign.cn/doc/opendoc/auth3/rx8igf
      *
-     * @param array $psnAuthConfig 个人实名认证配置项
-     * @param array $authorizeConfig 个人授权配置项（可选）
+     * @param array       $psnAuthConfig   个人实名认证配置项
+     * @param array|null  $authorizeConfig 个人授权配置项（可选）
+     * @param array|null  $redirectConfig  重定向配置项（可选）
+     * @param string|null $notifyUrl       异步通知地址（可选）
+     * @param string|null $clientType      客户端类型（可选，默认ALL）
      * @return array 包含authUrl和authFlowId
      * @throws ESignBaoException
      */
-    public function getPersonAuthUrl(array $psnAuthConfig, ?array $authorizeConfig = null): array
+    public function getPersonAuthUrl(
+        array   $psnAuthConfig,
+        ?array  $authorizeConfig = null,
+        ?array  $redirectConfig = null,
+        ?string $notifyUrl = null,
+        ?string $clientType = null
+    ): array
     {
         $data = ['psnAuthConfig' => $psnAuthConfig];
-        
+
         if ($authorizeConfig !== null) {
             $data['authorizeConfig'] = $authorizeConfig;
+        }
+        if ($redirectConfig !== null) {
+            $data['redirectConfig'] = $redirectConfig;
+        }
+        if ($notifyUrl !== null) {
+            $data['notifyUrl'] = $notifyUrl;
+        }
+        if ($clientType !== null) {
+            $data['clientType'] = $clientType;
         }
 
         return $this->httpClient->post('/v3/psn-auth-url', $data);
@@ -50,16 +68,22 @@ class AuthService
      * 获取机构认证&授权页面链接
      * 接口文档: https://open.esign.cn/doc/opendoc/auth3/kcbdu7
      *
-     * @param array $orgAuthConfig 组织机构认证配置项
-     * @param array $transactorInfo 经办人身份信息（可选）
-     * @param array $authorizeConfig 机构授权配置项（可选）
+     * @param array       $orgAuthConfig   组织机构认证配置项
+     * @param array|null  $transactorInfo  经办人身份信息（可选）
+     * @param array|null  $authorizeConfig 机构授权配置项（可选）
+     * @param array|null  $redirectConfig  重定向配置项（可选）
+     * @param string|null $notifyUrl       异步通知地址（可选）
+     * @param string|null $clientType      客户端类型（可选，默认ALL）
      * @return array 包含authUrl和authFlowId
      * @throws ESignBaoException
      */
     public function getOrganizationAuthUrl(
-        array $orgAuthConfig,
-        ?array $transactorInfo = null,
-        ?array $authorizeConfig = null
+        array   $orgAuthConfig,
+        ?array  $transactorInfo = null,
+        ?array  $authorizeConfig = null,
+        ?array  $redirectConfig = null,
+        ?string $notifyUrl = null,
+        ?string $clientType = null
     ): array
     {
         $data = ['orgAuthConfig' => $orgAuthConfig];
@@ -69,6 +93,15 @@ class AuthService
         }
         if ($authorizeConfig !== null) {
             $data['authorizeConfig'] = $authorizeConfig;
+        }
+        if ($redirectConfig !== null) {
+            $data['redirectConfig'] = $redirectConfig;
+        }
+        if ($notifyUrl !== null) {
+            $data['notifyUrl'] = $notifyUrl;
+        }
+        if ($clientType !== null) {
+            $data['clientType'] = $clientType;
         }
 
         return $this->httpClient->post('/v3/org-auth-url', $data);
