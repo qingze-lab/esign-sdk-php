@@ -9,62 +9,54 @@ use QingzeLab\ESignBao\Log\NullLogger;
 
 /**
  * 易签宝配置类
+ * 参考 OpenIM SDK 设计
  */
 class Configuration
 {
     /**
-     * 应用ID
-     * @var string
+     * @var string 应用ID
      */
     private string $appId;
 
     /**
-     * 应用密钥
-     * @var string
+     * @var string 应用密钥
      */
     private string $appSecret;
 
     /**
-     * 接口地址
-     * @var string
+     * @var string 接口地址
      */
     private string $apiBaseUrl;
 
     /**
-     * 请求超时时间
-     * @var int
+     * @var int 请求超时时间
      */
-    private int $timeout;
+    private int $timeout = 30;
 
     /**
-     * 连接超时时间（秒）
-     * @var float
+     * @var float 连接超时时间（秒）
      */
-    private float $connectTimeout;
+    private float $connectTimeout = 2.0;
 
     /**
-     * 是否沙箱环境
-     * @var bool
+     * @var bool 是否沙箱环境
      */
-    private bool $sandbox;
+    private bool $sandbox = false;
 
     /**
-     * 重试次数
-     * @var int
+     * @var int 重试次数
      */
-    private int $maxRetries;
+    private int $maxRetries = 3;
 
     /**
-     * 重试状态码
-     * @var array
+     * @var array 重试状态码
      */
-    private array $retryStatusCodes;
+    private array $retryStatusCodes = [408, 429, 500, 502, 503, 504];
 
     /**
-     * 重试基础延迟（毫秒）
-     * @var int
+     * @var int 重试基础延迟（毫秒）
      */
-    private int $retryDelayMs;
+    private int $retryDelayMs = 200;
 
     /**
      * @var LoggerInterface 日志器
@@ -74,135 +66,127 @@ class Configuration
     /**
      * 构造函数
      *
-     * @param array $config 配置数组
+     * @param string $appId      应用ID
+     * @param string $appSecret  应用密钥
+     * @param string $apiBaseUrl 接口地址（默认正式环境）
      */
-    public function __construct(array $config)
+    public function __construct(string $appId, string $appSecret, string $apiBaseUrl = 'https://openapi.esign.cn')
     {
-        // 必填参数
-        $this->appId     = $config['app_id'] ?? throw new \InvalidArgumentException('app_id is required');
-        $this->appSecret = $config['app_secret'] ?? throw new \InvalidArgumentException('app_secret is required');
-
-        // 可选参数
-        $this->sandbox    = $config['sandbox'] ?? false;
-        $this->apiBaseUrl = $config['api_base_url'] ?? ($this->sandbox
-            ? 'https://smlopenapi.esign.cn'
-            : 'https://openapi.esign.cn');
-
-        $this->timeout          = $config['timeout'] ?? 30;
-        $this->connectTimeout   = $config['connect_timeout'] ?? 2.0;
-        $this->maxRetries       = $config['max_retries'] ?? 3;
-        $this->retryStatusCodes = $config['retry_status_codes'] ?? [408, 429, 500, 502, 503, 504];
-        $this->retryDelayMs     = $config['retry_delay_ms'] ?? 200;
-
-        $this->apiBaseUrl = rtrim($this->apiBaseUrl, '/');
+        $this->appId      = $appId;
+        $this->appSecret  = $appSecret;
+        $this->apiBaseUrl = rtrim($apiBaseUrl, '/');
         $this->logger     = new NullLogger();
+
+        // 简单判断是否为沙箱环境，用于辅助逻辑
+        if (str_contains($this->apiBaseUrl, 'smlopenapi')) {
+            $this->sandbox = true;
+        }
     }
 
     /**
-     * 获取应用ID
-     * @return string
+     * 设置请求超时时间
+     * @param int $timeout
+     * @return self
      */
+    public function setTimeout(int $timeout): self
+    {
+        $this->timeout = $timeout;
+        return $this;
+    }
+
+    /**
+     * 设置连接超时时间
+     * @param float $connectTimeout
+     * @return self
+     */
+    public function setConnectTimeout(float $connectTimeout): self
+    {
+        $this->connectTimeout = $connectTimeout;
+        return $this;
+    }
+
+    /**
+     * 设置最大重试次数
+     * @param int $maxRetries
+     * @return self
+     */
+    public function setMaxRetries(int $maxRetries): self
+    {
+        $this->maxRetries = $maxRetries;
+        return $this;
+    }
+
+    /**
+     * 设置重试延迟
+     * @param int $retryDelayMs
+     * @return self
+     */
+    public function setRetryDelayMs(int $retryDelayMs): self
+    {
+        $this->retryDelayMs = $retryDelayMs;
+        return $this;
+    }
+
+    /**
+     * 设置日志器
+     * @param LoggerInterface $logger
+     * @return self
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    // Getters
+
     public function getAppId(): string
     {
         return $this->appId;
     }
 
-    /**
-     * 获取应用密钥
-     * @return string
-     */
     public function getAppSecret(): string
     {
         return $this->appSecret;
     }
 
-    /**
-     * 获取接口地址
-     * @return string
-     */
     public function getApiBaseUrl(): string
     {
         return $this->apiBaseUrl;
     }
 
-    /**
-     * 获取请求超时时间
-     * @return int
-     */
     public function getTimeout(): int
     {
         return $this->timeout;
     }
 
-    /**
-     * 获取连接超时时间（秒）
-     * @return float
-     */
     public function getConnectTimeout(): float
     {
         return $this->connectTimeout;
     }
 
-    /**
-     * 是否沙箱环境
-     * @return bool
-     */
     public function isSandbox(): bool
     {
         return $this->sandbox;
     }
 
-    /**
-     * 获取重试次数
-     * @return int
-     */
     public function getMaxRetries(): int
     {
         return $this->maxRetries;
     }
 
-    /**
-     * 获取重试状态码
-     * @return array
-     */
     public function getRetryStatusCodes(): array
     {
         return $this->retryStatusCodes;
     }
 
-    /**
-     * 获取重试基础延迟（毫秒）
-     * @return int
-     */
     public function getRetryDelayMs(): int
     {
         return $this->retryDelayMs;
     }
 
-    /**
-     * 从数组创建配置实例
-     * @param array $config
-     * @return Configuration
-     */
-    public static function fromArray(array $config): self
-    {
-        return new self($config);
-    }
-
-    /**
-     * @return LoggerInterface
-     */
     public function getLogger(): LoggerInterface
     {
         return $this->logger;
-    }
-
-    /**
-     * @param LoggerInterface $logger
-     * @return void
-     */
-    public function setLogger(LoggerInterface $logger): void
-    {
-        $this->logger = $logger;
     }
 }

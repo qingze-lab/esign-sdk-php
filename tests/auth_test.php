@@ -7,15 +7,17 @@ use QingzeLab\ESignBao\Config\Configuration;
 use QingzeLab\ESignBao\Exceptions\ESignBaoException;
 
 // 用户提供的沙箱配置
-$config = [
-    'app_id'     => 'your_app_id',
-    'app_secret' => 'your_app_secret',
-    'sandbox'    => true,
-    'debug'      => true, // 开启调试模式（如果支持）
-];
+$appId = 'your_app_id';
+$appSecret = 'your_app_secret';
+$baseUrl = 'https://smlopenapi.esign.cn';
 
 try {
     echo "初始化客户端...\n";
+    $config = new Configuration($appId, $appSecret, $baseUrl);
+    // 可选配置
+    $config->setTimeout(30)
+           ->setMaxRetries(3);
+           
     $client = new Client($config);
     
     echo "配置信息:\n";

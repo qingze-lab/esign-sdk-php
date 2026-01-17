@@ -15,18 +15,11 @@ use QingzeLab\ESignBao\Services\SignFlowService;
  * 参考OpenIM SDK的Client设计
  *
  * @example
- * $client = new Client([
- *     'app_id' => 'your_app_id',
- *     'app_secret' => 'your_app_secret',
- *     'sandbox' => false,
- *     'max_retries' => 3,
- * ]);
+ * $config = new Configuration('your_app_id', 'your_app_secret', 'https://smlopenapi.esign.cn');
+ * $client = new Client($config);
  *
  * // 实名认证链接获取
  * $result = $client->auth()->getPersonAuthUrl(['psnAccount' => '...']);
- *
- * // 创建签署流程
- * $flow = $client->signFlow()->createByFile($docs, '合同签署');
  */
 class Client
 {
@@ -58,11 +51,11 @@ class Client
     /**
      * 构造函数
      *
-     * @param array $config 配置数组
+     * @param Configuration $config 配置对象
      */
-    public function __construct(array $config)
+    public function __construct(Configuration $config)
     {
-        $this->config     = Configuration::fromArray($config);
+        $this->config     = $config;
         $this->httpClient = new HttpClient($this->config);
     }
 
