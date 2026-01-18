@@ -80,8 +80,8 @@ class AuthService
     public function getOrganizationAuthUrl(
         array   $orgAuthConfig,
         ?array  $authorizeConfig = null,
-        ?string $notifyUrl = null,
         ?array  $redirectConfig = null,
+        ?string $notifyUrl = null,
         ?string $clientType = null,
         ?string $appScheme = null
     ): array
