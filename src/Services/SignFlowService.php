@@ -28,288 +28,194 @@ class SignFlowService
 
     /**
      * 基于文件创建签署流程
-     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/aoq509
+     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/su5g42
      * 接口路径: POST /v3/sign-flow/create-by-file
      *
-     * @param array      $docs           文档信息列表，格式：[['fileId' => 'xxx', 'fileName' => 'xxx']]
-     * @param string     $signFlowTitle  签署流程标题
-     * @param array|null $signFlowConfig 签署流程配置（可选）
-     * @param array|null $signers        签署方列表（可选）
+     * @param array|null $docs              待签署文件信息
+     * @param array|null $attachments       附件信息（可选）
+     * @param array|null $signFlowConfig    签署流程配置项
+     * @param array|null $signFlowInitiator 签署发起方信息（可选）
+     * @param array|null $signers           签署方信息（可选）
+     * @param array|null $copiers           抄送方信息（可选）
      * @return array 包含signFlowId的流程信息
      * @throws ESignBaoException
      */
     public function createByFile(
-        array  $docs,
-        string $signFlowTitle,
+        ?array $docs = null,
+        ?array $attachments = null,
         ?array $signFlowConfig = null,
-        ?array $signers = null
+        ?array $signFlowInitiator = null,
+        ?array $signers = null,
+        ?array $copiers = null
     ): array
     {
-        $data = [
-            'docs'          => $docs,
-            'signFlowTitle' => $signFlowTitle,
-        ];
+        $data = [];
+
+        if ($docs !== null) {
+            $data['docs'] = $docs;
+        }
+
+        if ($attachments !== null) {
+            $data['attachments'] = $attachments;
+        }
 
         if ($signFlowConfig !== null) {
             $data['signFlowConfig'] = $signFlowConfig;
         }
+
+        if ($signFlowInitiator !== null) {
+            $data['signFlowInitiator'] = $signFlowInitiator;
+        }
+
         if ($signers !== null) {
             $data['signers'] = $signers;
+        }
+
+        if ($copiers !== null) {
+            $data['copiers'] = $copiers;
+        }
+
+        if (empty($data)) {
+            throw new ESignBaoException('创建签署流程参数不能为空');
         }
 
         return $this->httpClient->post('/v3/sign-flow/create-by-file', $data);
     }
 
     /**
-     * 基于签署模板创建签署流程
-     * 接口路径: POST /v3/sign-flow/create-by-sign-template
-     *
-     * @param string     $signTemplateId 签署模板ID
-     * @param string     $signFlowTitle  签署流程标题
-     * @param array|null $docs           文档信息列表（可选）
-     * @param array|null $signFlowConfig 签署流程配置（可选）
-     * @param array|null $fillValues     填充值（可选）
-     * @return array 包含signFlowId的流程信息
-     * @throws ESignBaoException
-     */
-    public function createBySignTemplate(
-        string $signTemplateId,
-        string $signFlowTitle,
-        ?array $docs = null,
-        ?array $signFlowConfig = null,
-        ?array $fillValues = null
-    ): array
-    {
-        $data = [
-            'signTemplateId' => $signTemplateId,
-            'signFlowTitle'  => $signFlowTitle,
-        ];
-
-        if ($docs !== null) {
-            $data['docs'] = $docs;
-        }
-        if ($signFlowConfig !== null) {
-            $data['signFlowConfig'] = $signFlowConfig;
-        }
-        if ($fillValues !== null) {
-            $data['fillValues'] = $fillValues;
-        }
-
-        return $this->httpClient->post('/v3/sign-flow/create-by-sign-template', $data);
-    }
-
-    /**
-     * 添加签署方
-     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/su5g42
-     *
-     * @param string $signFlowId 签署流程ID
-     * @param array  $signers    签署方列表
-     * @return array 添加结果
-     * @throws ESignBaoException
-     */
-    public function addSigners(string $signFlowId, array $signers): array
-    {
-        $data = ['signers' => $signers];
-        return $this->httpClient->post("/v3/sign-flow/{$signFlowId}/signers", $data);
-    }
-
-    /**
-     * 开启签署流程
+     * 获取签署页面链接
      * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/pvfkwd
+     * 接口路径: POST /v3/sign-flow/{signFlowId}/sign-url
      *
-     * @param string $signFlowId 签署流程ID
-     * @return array 开启结果
-     * @throws ESignBaoException
-     */
-    public function startFlow(string $signFlowId): array
-    {
-        return $this->httpClient->put("/v3/sign-flow/{$signFlowId}/start", []);
-    }
-
-    /**
-     * 获取签署地址
-     *
-     * @param string      $signFlowId  签署流程ID
-     * @param string      $signerId    签署方ID
-     * @param int         $urlType     链接类型：1-短链接，2-长链接
-     * @param string|null $appScheme   APP唤起协议（可选）
-     * @param string|null $redirectUrl 签署完成后跳转地址（可选）
-     * @return array 包含签署链接
+     * @param string      $signFlowId     签署流程ID
+     * @param array|null  $operator       操作人信息（个人传psnAccount/psnId，机构传经办人信息）
+     * @param array|null  $organization   机构信息（可选，机构签署时传）
+     * @param bool        $needLogin      是否需要登录（默认false）
+     * @param int         $urlType        链接类型：1-预览链接，2-签署链接（默认2）
+     * @param string      $clientType     客户端类型：ALL/H5/PC（默认ALL）
+     * @param array|null  $redirectConfig 重定向配置（可选）
+     * @param string|null $appScheme      APP唤起协议（可选）
+     * @return array 包含shortUrl和url的链接信息
      * @throws ESignBaoException
      */
     public function getSignUrl(
         string  $signFlowId,
-        string  $signerId,
-        int     $urlType = 1,
-        ?string $appScheme = null,
-        ?string $redirectUrl = null
+        ?array  $operator = null,
+        ?array  $organization = null,
+        bool    $needLogin = false,
+        int     $urlType = 2,
+        string  $clientType = 'ALL',
+        ?array  $redirectConfig = null,
+        ?string $appScheme = null
     ): array
     {
-        $data = ['urlType' => $urlType];
+        $data = [
+            'needLogin'  => $needLogin,
+            'urlType'    => $urlType,
+            'clientType' => $clientType,
+        ];
+
+        if ($operator !== null) {
+            $data['operator'] = $operator;
+        }
+
+        if ($organization !== null) {
+            $data['organization'] = $organization;
+        }
+
+        if ($redirectConfig !== null) {
+            $data['redirectConfig'] = $redirectConfig;
+        }
 
         if ($appScheme !== null) {
             $data['appScheme'] = $appScheme;
         }
-        if ($redirectUrl !== null) {
-            $data['redirectUrl'] = $redirectUrl;
-        }
 
-        return $this->httpClient->post("/v3/sign-flow/{$signFlowId}/signers/{$signerId}/sign-url", $data);
+        return $this->httpClient->post("/v3/sign-flow/{$signFlowId}/sign-url", $data);
     }
 
     /**
      * 查询签署流程详情
+     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/xxk4q6
+     * 接口路径: GET /v3/sign-flow/{signFlowId}/detail
      *
      * @param string $signFlowId 签署流程ID
-     * @return array 流程详情
+     * @return array 包含流程状态、文件信息、签署方信息等详情
      * @throws ESignBaoException
      */
-    public function getFlowDetail(string $signFlowId): array
+    public function getSignFlowDetail(string $signFlowId): array
     {
-        return $this->httpClient->get("/v3/sign-flow/{$signFlowId}");
+        return $this->httpClient->get("/v3/sign-flow/{$signFlowId}/detail");
     }
 
     /**
-     * 撤销签署流程
+     * 下载已签署文件及附属材料
+     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/kczf8g
+     * 接口路径: POST /v3/sign-flow/{signFlowId}/file-download-url
      *
-     * @param string      $signFlowId   签署流程ID
-     * @param string      $operatorId   操作人账号ID
-     * @param string|null $revokeReason 撤销原因（可选）
-     * @return array 撤销结果
+     * @param string      $signFlowId       签署流程ID
+     * @param int|null    $urlAvailableDate 下载链接有效期，单位：秒。默认：3600
+     * @param bool|null   $internalUrl      是否是内网地址，默认：false
+     * @param string|null $rsaSecret        文件需要加密时使用的RSA公钥（base64编码）
+     * @param string|null $rsaSecretKey     RSA公钥版本
+     * @return array 包含files和attachments的下载链接信息
      * @throws ESignBaoException
      */
-    public function revokeFlow(
+    public function getFileDownloadUrl(
         string  $signFlowId,
-        string  $operatorId,
-        ?string $revokeReason = null
+        ?int    $urlAvailableDate = null,
+        ?bool   $internalUrl = null,
+        ?string $rsaSecret = null,
+        ?string $rsaSecretKey = null
     ): array
     {
-        $data = ['operatorId' => $operatorId];
+        $data = [];
 
-        if ($revokeReason !== null) {
-            $data['revokeReason'] = $revokeReason;
+        if ($urlAvailableDate !== null) {
+            $data['urlAvailableDate'] = $urlAvailableDate;
         }
 
-        return $this->httpClient->put("/v3/sign-flow/{$signFlowId}/revoke", $data);
+        if ($internalUrl !== null) {
+            $data['internalUrl'] = $internalUrl;
+        }
+
+        if ($rsaSecret !== null) {
+            $data['rsaSecret'] = $rsaSecret;
+        }
+
+        if ($rsaSecretKey !== null) {
+            $data['rsaSecretKey'] = $rsaSecretKey;
+        }
+
+        return $this->httpClient->post("/v3/sign-flow/{$signFlowId}/file-download-url", $data);
     }
 
     /**
-     * 下载签署后的文件
+     * 下载签署中文件
+     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/gkgc4729sa67upfn
+     * 接口路径: GET /v3/sign-flow/{signFlowId}/preview-file-download-url
      *
-     * @param string $signFlowId 签署流程ID
-     * @return array 包含下载链接
+     * @param string   $signFlowId       签署流程ID
+     * @param string   $docFileId        签署流程中的文件ID
+     * @param int|null $urlAvailableDate 下载链接有效期，单位：秒。默认：3600
+     * @return array 包含文件下载链接信息
      * @throws ESignBaoException
      */
-    public function getSignedFiles(string $signFlowId): array
-    {
-        return $this->httpClient->get("/v3/sign-flow/{$signFlowId}/signed-files");
-    }
-
-    /**
-     * 构建签署方数据结构（个人）
-     *
-     * @param string      $psnId      个人账号ID
-     * @param string|null $psnAccount 个人账号标识（可选）
-     * @param int         $signOrder  签署顺序
-     * @param array|null  $signFields 签署区域（可选）
-     * @return array 签署方数据
-     */
-    public static function buildPersonSigner(
-        string  $psnId,
-        ?string $psnAccount = null,
-        int     $signOrder = 1,
-        ?array  $signFields = null
+    public function getPreviewFileDownloadUrl(
+        string $signFlowId,
+        string $docFileId,
+        ?int   $urlAvailableDate = null
     ): array
     {
-        $signer = [
-            'signerType' => 0, // 0-个人
-            'psnId'      => $psnId,
-            'signOrder'  => $signOrder,
+        $data = [
+            'docFileId' => $docFileId,
         ];
 
-        if ($psnAccount !== null) {
-            $signer['psnAccount'] = $psnAccount;
-        }
-        if ($signFields !== null) {
-            $signer['signFields'] = $signFields;
+        if ($urlAvailableDate !== null) {
+            $data['urlAvailableDate'] = $urlAvailableDate;
         }
 
-        return $signer;
+        return $this->httpClient->get("/v3/sign-flow/{$signFlowId}/preview-file-download-url", $data);
     }
 
-    /**
-     * 构建签署方数据结构（企业）
-     *
-     * @param string     $orgId      企业账号ID
-     * @param string     $psnId      经办人账号ID
-     * @param int        $signOrder  签署顺序
-     * @param array|null $signFields 签署区域（可选）
-     * @return array 签署方数据
-     */
-    public static function buildOrganizationSigner(
-        string $orgId,
-        string $psnId,
-        int    $signOrder = 1,
-        ?array $signFields = null
-    ): array
-    {
-        $signer = [
-            'signerType' => 1, // 1-企业
-            'orgId'      => $orgId,
-            'psnId'      => $psnId,
-            'signOrder'  => $signOrder,
-        ];
-
-        if ($signFields !== null) {
-            $signer['signFields'] = $signFields;
-        }
-
-        return $signer;
-    }
-
-    /**
-     * 构建签署区域数据结构
-     *
-     * @param int        $fileId      文件序号（从0开始）
-     * @param bool       $autoExecute 是否自动签署
-     * @param int|null   $posPage     页码（从1开始）
-     * @param float|null $posX        X坐标（0-1之间）
-     * @param float|null $posY        Y坐标（0-1之间）
-     * @param float|null $width       宽度（0-1之间）
-     * @param float|null $height      高度（0-1之间）
-     * @return array 签署区域数据
-     */
-    public static function buildSignField(
-        int    $fileId = 0,
-        bool   $autoExecute = false,
-        ?int   $posPage = null,
-        ?float $posX = null,
-        ?float $posY = null,
-        ?float $width = null,
-        ?float $height = null
-    ): array
-    {
-        $signField = [
-            'fileId'      => $fileId,
-            'autoExecute' => $autoExecute,
-        ];
-
-        if ($posPage !== null) {
-            $signField['posPage'] = $posPage;
-        }
-        if ($posX !== null) {
-            $signField['posX'] = $posX;
-        }
-        if ($posY !== null) {
-            $signField['posY'] = $posY;
-        }
-        if ($width !== null) {
-            $signField['width'] = $width;
-        }
-        if ($height !== null) {
-            $signField['height'] = $height;
-        }
-
-        return $signField;
-    }
 }

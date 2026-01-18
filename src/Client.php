@@ -9,6 +9,7 @@ use QingzeLab\ESignBao\Http\HttpClient;
 use QingzeLab\ESignBao\Services\AuthService;
 use QingzeLab\ESignBao\Services\FileService;
 use QingzeLab\ESignBao\Services\SignFlowService;
+use QingzeLab\ESignBao\Services\TemplateService;
 
 /**
  * 易签宝SDK主客户端类
@@ -47,6 +48,11 @@ class Client
      * @var FileService|null
      */
     private ?FileService $fileService = null;
+
+    /**
+     * @var TemplateService|null
+     */
+    private ?TemplateService $templateService = null;
 
     /**
      * 构造函数
@@ -90,6 +96,17 @@ class Client
             $this->fileService = new FileService($this->httpClient);
         }
         return $this->fileService;
+    }
+
+    /**
+     * 获取模板服务
+     */
+    public function template(): TemplateService
+    {
+        if ($this->templateService === null) {
+            $this->templateService = new TemplateService($this->httpClient);
+        }
+        return $this->templateService;
     }
 
     /**
