@@ -169,7 +169,9 @@ class SignFlowService
         ?string $rsaSecretKey = null
     ): array
     {
-        $data = [];
+        $data = [
+            'signFlowId' => $signFlowId,
+        ];
 
         if ($urlAvailableDate !== null) {
             $data['urlAvailableDate'] = $urlAvailableDate;

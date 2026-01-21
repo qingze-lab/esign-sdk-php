@@ -209,7 +209,7 @@ class HttpClient
             'Date'                      => $date,
             'X-Tsign-Open-App-Id'       => $this->config->getAppId(),
             'X-Tsign-Open-Auth-Mode'    => 'Signature',
-            'X-Tsign-Open-Ca-Timestamp' => (string)round(microtime(true) * 1000),
+            'X-Tsign-Open-Ca-Timestamp' => (string) round(microtime(true) * 1000),
             'X-Tsign-Open-Ca-Signature' => $signature,
         ];
 
@@ -244,20 +244,19 @@ class HttpClient
             'body'         => $body,
         ]);
 
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new ESignBaoException(
+                '请求失败',
+                $statusCode,
+            );
+        }
+
         $data = json_decode($body, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new ESignBaoException(
                 '响应解析失败: ' . json_last_error_msg(),
                 $statusCode,
                 ['raw_body' => $body]
-            );
-        }
-
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new ESignBaoException(
-                $data['message'] ?? '请求失败',
-                $data['code'] ?? $statusCode,
-                $data
             );
         }
 
