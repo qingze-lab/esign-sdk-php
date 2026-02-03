@@ -25,6 +25,22 @@ class SignatureUtil
     }
 
     /**
+     * 生成文件的Content-MD5
+     * 建议大文件使用此方法，避免读取文件内容到内存
+     *
+     * @param string $filePath 文件路径
+     * @return string Base64编码的MD5值
+     */
+    public static function generateFileMD5(string $filePath): string
+    {
+        if (!file_exists($filePath)) {
+            return '';
+        }
+        $md5Bytes = md5_file($filePath, true);
+        return base64_encode($md5Bytes);
+    }
+
+    /**
      * 生成请求签名
      * 按照易签宝官方文档的签名算法
      *
