@@ -21,11 +21,17 @@ class FileService
     private HttpClient $httpClient;
 
     /**
+     * @var UploadClient
+     */
+    private UploadClient $uploadClient;
+
+    /**
      * @param HttpClient $httpClient
      */
     public function __construct(HttpClient $httpClient)
     {
-        $this->httpClient = $httpClient;
+        $this->httpClient   = $httpClient;
+        $this->uploadClient = new UploadClient($httpClient->getConfig());
     }
 
     /**
@@ -80,10 +86,10 @@ class FileService
      * @param string      $filePath      本地文件路径
      * @param string      $contentType   文件MIME类型
      * @param string|null $contentMd5    文件Content-MD5，如果不传则自动计算（建议传入以确保与Step 1一致）
-     * @return void
+     * @return array 上传结果
      * @throws ESignBaoException
      */
-    public function uploadFileStream(string $fileUploadUrl, string $filePath, string $contentType = 'application/pdf', ?string $contentMd5 = null): void
+    public function uploadFileStream(string $fileUploadUrl, string $filePath, string $contentType = 'application/pdf', ?string $contentMd5 = null): array
     {
         if (!file_exists($filePath) || !is_readable($filePath)) {
             throw new ESignBaoException("文件不存在或不可读: {$filePath}", 0);
@@ -106,7 +112,8 @@ class FileService
                 'Content-Type' => $contentType,
                 'Content-MD5'  => $contentMd5,
             ];
-            (new UploadClient())->put($fileUploadUrl, $stream, $headers);
+
+            return $this->uploadClient->put($fileUploadUrl, $stream, $headers);
         } finally {
             if (is_resource($stream)) {
                 fclose($stream);
