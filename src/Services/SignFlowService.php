@@ -135,6 +135,27 @@ class SignFlowService
     }
 
     /**
+     * 撤销签署流程
+     * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/klbicu
+     * 接口路径: POST /v3/sign-flow/{signFlowId}/revoke
+     *
+     * @param string      $signFlowId   签署流程ID
+     * @param string|null $revokeReason 撤销原因（可选，最多50字）
+     * @return array 空对象
+     * @throws ESignBaoException
+     */
+    public function revoke(string $signFlowId, ?string $revokeReason = null): array
+    {
+        $data = [];
+
+        if ($revokeReason !== null) {
+            $data['revokeReason'] = $revokeReason;
+        }
+
+        return $this->httpClient->post("/v3/sign-flow/{$signFlowId}/revoke", $data);
+    }
+
+    /**
      * 查询签署流程详情
      * 接口文档: https://open.esign.cn/doc/opendoc/pdf-sign3/xxk4q6
      * 接口路径: GET /v3/sign-flow/{signFlowId}/detail
